@@ -1,59 +1,53 @@
-'use client';   
+'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-export default function AddProduit() {
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
+interface Produit { 
+  id: number;
+  name: string;
+  price: number;
+}
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+export default function ListeProduits() {
+  const [produits, setProduits] = useState<Produit[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-    const newProduit = { name, price: Number(price) };
+  useEffect(() => {
+    const fetchProduits = async () => {
+      const res = await fetch('http://localhost:3000/api/produitsApi');
+      const data = await res.json();
+      setProduits(data);
+      setLoading(false);
+    };
 
-    const res = await fetch('http://localhost:3000/api/produitsApi'
-, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newProduit),
-    });
+    fetchProduits();
+  }, []);
 
-    if (res.ok) {
-      alert('Produit ajouté avec succès');
-      // Tu peux rediriger ou réinitialiser le formulaire si nécessaire
-    } else {
-      alert('Erreur lors de l\'ajout du produit');
-    }
-  };
+  if (loading) {
+    return <div className="text-center">Chargement...</div>;
+  }
 
   return (
-    <div>
-      <h1>Ajouter un nouveau produit</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="name">Nom du produit</label>
-          <input
-            id="name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="price">Prix</label>
-          <input
-            id="price"
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Ajouter</button>
-      </form>
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-semibold text-center mb-6">Liste des Produits</h1>
+      <div className="bg-white shadow-md rounded-lg p-4">
+        <table className="min-w-full table-auto">
+          <thead className="border-b">
+            <tr>
+              <th className="px-4 py-2 text-left">Nom du produit</th>
+              <th className="px-4 py-2 text-left">Prix</th>
+            </tr>
+          </thead>
+          <tbody>
+            {produits.map((produit) => (
+              <tr key={produit.id} className="border-b">
+                <td className="px-4 py-2">{produit.name}</td>
+                <td className="px-4 py-2">{produit.price}€</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
